@@ -1,42 +1,117 @@
 import 'package:flutter/material.dart';
 
-void main() => runApp(MyApp());
+void main() {
+  runApp(TaskManagerApp());
+}
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
-  // This widget is the root of your application.
+class TaskManagerApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      // Application name
-      title: 'Flutter Hello World',
-      // Application theme data, you can set the colors for the application as
-      // you want
-      theme: ThemeData(
-        // useMaterial3: false,
-        primarySwatch: Colors.blue,
-      ),
-      // A widget which will be started on application startup
-      home: MyHomePage(title: 'Flutter Demo Home Page'),
+      title: 'Gerenciador de Tarefas',
+      theme: ThemeData(primarySwatch: Colors.blue),
+      home: TaskListScreen(),
     );
   }
 }
 
-class MyHomePage extends StatelessWidget {
-  final String title;
-  const MyHomePage({super.key, required this.title});  
+class Task {
+  String title;
+  String description;
+  String status;
+  DateTime dueDate;
+  String category;
+  bool isCompleted;
+
+  Task({
+    required this.title,
+    required this.description,
+    required this.status,
+    required this.dueDate,
+    required this.category,
+    this.isCompleted = false,
+  });
+}
+
+class TaskListScreen extends StatefulWidget {
+  @override
+  _TaskListScreenState createState() => _TaskListScreenState();
+}
+
+class _TaskListScreenState extends State<TaskListScreen> {
+  final List<Task> tasks = [];
+  final TextEditingController titleController = TextEditingController();
+  final TextEditingController descController = TextEditingController();
+  final TextEditingController categoryController = TextEditingController();
+  DateTime selectedDate = DateTime.now();
+
+  void _addTask() {
+    setState(() {
+      tasks.add(Task(
+        title: titleController.text,
+        description: descController.text,
+        status: 'Pendente',
+        dueDate: selectedDate,
+        category: categoryController.text,
+      ));
+    });
+    titleController.clear();
+    descController.clear();
+    categoryController.clear();
+  }
+
+  void _toggleTaskCompletion(int index) {
+    setState(() {
+      tasks[index].isCompleted = !tasks[index].isCompleted;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        // The title text which will be shown on the action bar
-        title: Text(title),
-      ),
-      body: Center(
-        child: Text(
-          'Hello, World!',
-        ),
+      appBar: AppBar(title: Text('Gerenciador de Tarefas')),
+      body: Column(
+        children: [
+          Padding(
+            padding: EdgeInsets.all(8.0),
+            child: Column(
+              children: [
+                TextField(
+                    controller: titleController,
+                    decoration: InputDecoration(labelText: 'Título')),
+                TextField(
+                    controller: descController,
+                    decoration: InputDecoration(labelText: 'Descrição')),
+                TextField(
+                    controller: categoryController,
+                    decoration: InputDecoration(labelText: 'Categoria')),
+                SizedBox(height: 10),
+                ElevatedButton(
+                    onPressed: _addTask, child: Text('Adicionar Tarefa')),
+              ],
+            ),
+          ),
+          Expanded(
+            child: ListView.builder(
+              itemCount: tasks.length,
+              itemBuilder: (context, index) {
+                final task = tasks[index];
+                return ListTile(
+                  title: Text(task.title,
+                      style: TextStyle(
+                          decoration: task.isCompleted
+                              ? TextDecoration.lineThrough
+                              : null)),
+                  subtitle: Text('${task.description} - ${task.category}'),
+                  trailing: Checkbox(
+                    value: task.isCompleted,
+                    onChanged: (value) => _toggleTaskCompletion(index),
+                  ),
+                );
+              },
+            ),
+          ),
+        ],
       ),
     );
   }
